@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Store.Application;
 using Store.Application.Interfaces;
 using Store.Infrastructure.Identity;
+using Store.Infrastructure.Logic;
 using Store.Infrastructure.Shared;
 using Store.WebApi.Extensions;
 using Store.WebApi.Services;
@@ -22,6 +23,7 @@ namespace Store.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddIdentityInfrastructure(_config);
+            services.AddLogicInfrastructure(_config);
             services.AddSharedInfrastructure(_config);
             services.AddSwaggerExtension();
             services.AddControllers();

@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Store.Application.DTOs.Store;
 using Store.Application.Enums;
 using Store.Application.Exceptions;
-using Store.Domain.Entities;
+using Store.Application.Interfaces;
 using Store.Infrastructure.Identity.Models;
 using System;
 using System.Collections.Generic;
@@ -18,11 +19,10 @@ namespace Store.WebApi.Controllers.v1
     [ApiVersion("1.0")]
     public class StoreController : BaseApiController
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-
-        public StoreController(UserManager<ApplicationUser> userManager)
+        private readonly IStoreService _storeService;
+        public StoreController(IStoreService storeService)
         {
-            this._userManager = userManager;
+            _storeService = storeService;
         }
 
         [HttpGet]
@@ -30,26 +30,16 @@ namespace Store.WebApi.Controllers.v1
         public async Task<IActionResult> Get()
         {
             var role = HttpContext.User.FindFirst(ClaimTypes.Role).Value;
-            return Ok(role == Roles.Privileged.ToString() ? new PrivilegedProduct() : new Product());
+            return Ok(await _storeService.GetStoreDetails(role));
         }
 
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Post(PrivilegedProduct product)
+        public async Task<IActionResult> Post(StoreRequest storeRequest)
         {
-            if (product.Discount > 0)
-            {
-                var role = HttpContext.User.FindFirst(ClaimTypes.Role).Value;
-               if(role != Roles.Privileged.ToString())
-                {
-                    throw new ApiException("Not a privileged customer to get discount");
-                }
-            }
-
-            return Ok();
+            var role = HttpContext.User.FindFirst(ClaimTypes.Role).Value;
+            return Ok(await _storeService.CalculateTotal(storeRequest, role));
         }
-
-
     }
 }
